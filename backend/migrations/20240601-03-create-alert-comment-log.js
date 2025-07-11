@@ -31,23 +31,23 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      updated_at: {
+      created_at: {
+        allowNull: false,
         type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
+      },
+      updated_at: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
+      },
+      created_by: {
+        type: Sequelize.STRING,
         allowNull: true,
       },
       updated_by: {
         type: Sequelize.STRING,
         allowNull: true,
-      },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW'),
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW'),
       },
     });
   },

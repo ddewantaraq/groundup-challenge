@@ -13,4 +13,16 @@ export class Machine extends Model<Machine> {
 
   @HasMany(() => Alert)
   declare alerts: Alert[];
+
+  @Column({ type: DataType.DATE, allowNull: true })
+  declare created_at?: Date;
+
+  @Column({ type: DataType.DATE, allowNull: true })
+  declare updated_at?: Date;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  declare created_by?: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  declare updated_by?: string;
 } 

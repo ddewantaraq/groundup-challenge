@@ -14,15 +14,23 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.fn('NOW'),
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.fn('NOW'),
+      },
+      created_by: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      updated_by: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
     });
   },

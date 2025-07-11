@@ -37,7 +37,16 @@ export class Alert extends Model<Alert> {
   declare comment?: string;
 
   @Column({ type: DataType.DATE, allowNull: true })
+  declare created_at?: Date;
+
+  @Column({ type: DataType.DATE, allowNull: true })
   declare updated_at?: Date;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  declare created_by?: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  declare updated_by?: string;
 
   @BelongsTo(() => Machine)
   declare machine: Machine;
