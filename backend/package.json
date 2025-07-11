@@ -1,0 +1,25 @@
+{
+  "name": "ground-up-challenge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx ts-node backend/index.ts",
+    "migrate": "npx sequelize-cli db:migrate --config config/config.js",
+    "seed": "npx sequelize-cli db:seed:all --config config/config.js",
+    "undo:migrate": "npx sequelize-cli db:migrate:undo:all --config config/config.js",
+    "undo:seed": "npx sequelize-cli db:seed:undo:all --config config/config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "pg": "^8.16.3",
+    "reflect-metadata": "^0.2.2",
+    "sequelize": "^6.37.7",
+    "sequelize-typescript": "^2.1.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.13"
+  }
+}
