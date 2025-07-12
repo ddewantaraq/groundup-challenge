@@ -4,11 +4,14 @@ import type { Machine } from './api';
 import AlertList from './AlertList';
 import AlertDetail from './AlertDetail';
 import { fetchMachines } from './api';
+import type { Alert } from './api';
 
 export default function AlertsContainer() {
   const [machines, setMachines] = useState<Machine[]>([]);
   const [selectedMachine, setSelectedMachine] = useState('');
   const [selectedAlertId, setSelectedAlertId] = useState<string | undefined>(undefined);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
 
   useEffect(() => {
     const loadMachines = async () => {
@@ -22,11 +25,25 @@ export default function AlertsContainer() {
   }, []);
 
   useEffect(() => {
-    if (machines.length > 0) {
-      setSelectedMachine(machines[0].id);
-      setSelectedAlertId(undefined);
-    }
-  }, [machines]);
+    if (!selectedMachine) return;
+    const fetchAlerts = async () => {
+      setLoadingAlerts(true);
+      const res = await fetch(`/api/alerts?machineId=${encodeURIComponent(selectedMachine)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAlerts(data);
+      } else {
+        setAlerts([]);
+      }
+      setLoadingAlerts(false);
+    };
+    fetchAlerts();
+    setSelectedAlertId(undefined);
+  }, [selectedMachine]);
+
+  const handleAlertUpdated = (updatedAlert: Alert) => {
+    setAlerts(prevAlerts => prevAlerts.map(alert => alert.id === updatedAlert.id ? updatedAlert : alert));
+  };
 
   if (machines.length === 0) {
     return <div className="text-center py-8">Loading machines...</div>;
@@ -62,13 +79,14 @@ export default function AlertsContainer() {
         <div className="flex h-[600px] gap-6">
           <div className="w-1/3 h-full overflow-y-auto border-r pr-4">
             <AlertList
-              machineId={selectedMachine}
+              alerts={alerts}
+              loading={loadingAlerts}
               selectedAlertId={selectedAlertId}
               onSelectAlert={setSelectedAlertId}
             />
           </div>
           <div className="w-2/3 h-full overflow-y-auto pl-4">
-            <AlertDetail alertId={selectedAlertId} />
+            <AlertDetail alertId={selectedAlertId} onAlertUpdated={handleAlertUpdated} />
           </div>
         </div>
       </div>

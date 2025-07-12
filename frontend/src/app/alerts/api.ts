@@ -12,6 +12,7 @@ export interface Alert {
   suspected_reason?: string;
   action?: string;
   comment?: string;
+  sound_clip: string;
 }
 
 export async function fetchMachines(): Promise<Machine[]> {

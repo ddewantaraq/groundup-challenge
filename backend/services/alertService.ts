@@ -37,6 +37,7 @@ export async function getAlerts(page = 1, pageSize = 10, machineId?: string) {
           id: encodeId(alert.machine.id, 'machine'),
           name: alert.machine.name,
         } : null,
+        suspected_reason: alert.suspected_reason,
         alert_type: alert.alert_type,
         created_at: alert.created_at,
       })),
@@ -106,11 +107,7 @@ export async function updateAlert(obfuscatedId: string, data: UpdateAlertPayload
       updated_by: data.updated_by || 'anonymous',
     };
     await AlertCommentLog.create(logData);
-    const { id: _id, ...alertData } = alert.get();
-    return {
-      id: encodeId(alert.id, 'alert'),
-      ...alertData,
-    };
+    return await getAlertDetail(encodeId(alert.id, 'alert'));
   } catch (err) {
     throw new Error(`Failed to update alert: ${(err as Error).message}`);
   }

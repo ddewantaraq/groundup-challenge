@@ -3,31 +3,13 @@ import { useEffect, useState } from 'react';
 import type { Alert } from './api';
 
 interface AlertListProps {
-  machineId: string;
+  alerts: Alert[];
+  loading: boolean;
   selectedAlertId?: string;
   onSelectAlert: (alertId: string) => void;
 }
 
-export default function AlertList({ machineId, selectedAlertId, onSelectAlert }: AlertListProps) {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const init = async () => {
-      if (!machineId) return;
-      setLoading(true);
-      const res = await fetch(`/api/alerts?machineId=${encodeURIComponent(machineId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAlerts(data);
-      } else {
-        setAlerts([]);
-      }
-      setLoading(false);
-    };
-    init();
-  }, [machineId]);
-
+export default function AlertList({ alerts, loading, selectedAlertId, onSelectAlert }: AlertListProps) {
   if (loading) return <div className="text-center py-8">Loading alerts...</div>;
 
   return (
@@ -57,7 +39,7 @@ export default function AlertList({ machineId, selectedAlertId, onSelectAlert }:
             </span>
           </div>
           <div>
-            <div className="font-bold text-gray-800 text-sm">Unknown Anomally</div>
+            <div className="font-bold text-gray-800 text-sm">{alert.suspected_reason || 'no suspected reason yet'}</div>
             <div className="text-xs text-gray-500">
               Detected at {new Date(alert.timestamp).toLocaleString()}
             </div>

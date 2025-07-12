@@ -1,35 +1,203 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
 import type { Alert } from './api';
+import WaveSurfer from 'wavesurfer.js';
+import SpectrogramPlugin from 'wavesurfer.js/dist/plugins/spectrogram.esm.js';
+import { ACTIONS, SUSPECTED_REASONS } from '../const';
 
-export default function AlertDetailClient({ alert }: { alert?: Alert }) {
-  if (!alert) {
+type AlertUpdate = Pick<Alert, 'suspected_reason' | 'action' | 'comment'>;
+
+interface AlertDetailClientProps {
+  alert?: Alert;
+  onAlertUpdated?: (alert: Alert) => void;
+}
+
+export default function AlertDetailClient({ alert, onAlertUpdated }: AlertDetailClientProps) {
+  const [suspectedReason, setSuspectedReason] = useState(() => alert?.suspected_reason || '');
+  const [action, setAction] = useState(() => alert?.action || '');
+  const [comment, setComment] = useState(() => alert?.comment || '');
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [currentAlert, setCurrentAlert] = useState(alert);
+
+  // Sync alert prop to local state if alert changes
+  useEffect(() => {
+    setSuspectedReason(alert?.suspected_reason || '');
+    setAction(alert?.action || '');
+    setComment(alert?.comment || '');
+    setCurrentAlert(alert);
+  }, [alert]);
+
+  // Use sound_clip for both anomaly and normal audio for now
+  const audioUrl = currentAlert?.sound_clip ? `/audios/${currentAlert.sound_clip}` : '';
+
+  // Refs for waveform and spectrogram containers
+  const anomalyWaveformRef = useRef<HTMLDivElement>(null);
+  const anomalySpectrogramRef = useRef<HTMLDivElement>(null);
+  const normalWaveformRef = useRef<HTMLDivElement>(null);
+  const normalSpectrogramRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (audioUrl && anomalyWaveformRef.current && anomalySpectrogramRef.current) {
+      const ws = WaveSurfer.create({
+        container: anomalyWaveformRef.current,
+        waveColor: '#2563eb',
+        progressColor: '#1d4ed8',
+        height: 80,
+        barWidth: 2,
+        url: audioUrl,
+        plugins: [
+          SpectrogramPlugin.create({
+            container: anomalySpectrogramRef.current,
+            labels: true,
+            height: 120,
+            fftSamples: 512,
+            frequencyMax: 8000,
+          }),
+        ],
+      });
+      return () => ws.destroy();
+    }
+  }, [audioUrl]);
+
+  useEffect(() => {
+    if (audioUrl && normalWaveformRef.current && normalSpectrogramRef.current) {
+      const ws = WaveSurfer.create({
+        container: normalWaveformRef.current,
+        waveColor: '#2563eb',
+        progressColor: '#1d4ed8',
+        height: 80,
+        barWidth: 2,
+        url: audioUrl,
+        plugins: [
+          SpectrogramPlugin.create({
+            container: normalSpectrogramRef.current,
+            labels: true,
+            height: 120,
+            fftSamples: 512,
+            frequencyMax: 8000,
+          }),
+        ],
+      });
+      return () => ws.destroy();
+    }
+  }, [audioUrl]);
+
+  // Notification auto-hide
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  async function handleUpdate() {
+    if (!currentAlert) return;
+    setUpdating(true);
+    setNotification(null);
+    try {
+      const payload: AlertUpdate = {
+        suspected_reason: suspectedReason,
+        action,
+        comment,
+      };
+      const res = await fetch(`/api/alerts/${currentAlert.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Failed to update alert');
+      const updated = await res.json();
+      setCurrentAlert(updated);
+      setNotification({ type: 'success', message: 'Update successful!' });
+      if (onAlertUpdated) onAlertUpdated(updated);
+    } catch (e) {
+      setNotification({ type: 'error', message: 'Failed to update alert.' });
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  if (!currentAlert) {
     return (
       <div className="flex items-center justify-center h-full text-gray-400 text-lg">
         Please choose the alert to see the detail
       </div>
     );
   }
+
   return (
-    <div className="p-6">
-      <div className="text-xl font-bold mb-2">Alert ID #{alert.id}</div>
-      <div className="text-gray-500 mb-4">Detected at {new Date(alert.timestamp).toLocaleString()}</div>
-      {/* Placeholder for audio and spectrograms */}
+    <div className="p-6 relative">
+      {/* Notification */}
+      {notification && (
+        <div className={`fixed right-8 bottom-8 z-50 px-8 py-5 rounded-xl shadow-2xl text-white text-lg font-semibold transition-all
+          min-w-[320px] max-w-[90vw] w-auto
+          ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+        >
+          {notification.message}
+        </div>
+      )}
+      <div className="text-xl font-bold mb-2">Alert ID #{currentAlert.id}</div>
+      <div className="text-gray-500 mb-4">Detected at {new Date(currentAlert.timestamp).toLocaleString()}</div>
       <div className="flex gap-4 mb-6">
         <div className="flex-1 border p-2 rounded">
           <div className="font-semibold mb-1">Anomaly Machine Output</div>
-          <div className="bg-gray-200 h-24 mb-2 flex items-center justify-center">[Audio Player]</div>
-          <div className="bg-gray-100 h-24 flex items-center justify-center">[Spectrogram]</div>
+          <audio controls src={audioUrl} className="w-full mb-2" />
+          <div ref={anomalyWaveformRef} className="w-full h-20 mb-2" />
+          <div ref={anomalySpectrogramRef} className="w-full h-32" />
         </div>
         <div className="flex-1 border p-2 rounded">
           <div className="font-semibold mb-1">Normal Machine Output</div>
-          <div className="bg-gray-200 h-24 mb-2 flex items-center justify-center">[Audio Player]</div>
-          <div className="bg-gray-100 h-24 flex items-center justify-center">[Spectrogram]</div>
+          <audio controls src={audioUrl} className="w-full mb-2" />
+          <div ref={normalWaveformRef} className="w-full h-20 mb-2" />
+          <div ref={normalSpectrogramRef} className="w-full h-32" />
         </div>
       </div>
-      <div className="mb-2"><span className="font-semibold">Equipment:</span> {alert.machine.name}</div>
-      <div className="mb-2"><span className="font-semibold">Suspected Reason:</span> {alert.suspected_reason || '-'}</div>
-      <div className="mb-2"><span className="font-semibold">Action Required:</span> {alert.action || '-'}</div>
-      <div className="mb-2"><span className="font-semibold">Comments:</span> {alert.comment || '-'}</div>
+      <div className="mb-2"><span className="font-semibold">Equipment:</span> {currentAlert.machine.name}</div>
+      <div className="mb-4">
+        <label htmlFor="suspected-reason" className="block font-semibold mb-1">Suspected Reason</label>
+        <select
+          id="suspected-reason"
+          className="block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm"
+          value={suspectedReason}
+          onChange={e => setSuspectedReason(e.target.value)}
+        >
+          <option value="">Select Suspected Reason</option>
+          {SUSPECTED_REASONS.map(reason => (
+            <option key={reason.id} value={reason.id}>{reason.value}</option>
+          ))}
+        </select>
+      </div>
+      <div className="mb-4">
+        <label htmlFor="action-required" className="block font-semibold mb-1">Action Required</label>
+        <select
+          id="action-required"
+          className="block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm"
+          value={action}
+          onChange={e => setAction(e.target.value)}
+        >
+          <option value="">Select Action</option>
+          {ACTIONS.map(act => (
+            <option key={act.id} value={act.id}>{act.value}</option>
+          ))}
+        </select>
+      </div>
+      <div className="mb-4">
+        <label htmlFor="comments" className="block font-semibold mb-1">Comments</label>
+        <textarea
+          id="comments"
+          className="block w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm min-h-[80px]"
+          value={comment}
+          onChange={e => setComment(e.target.value)}
+        />
+      </div>
+      <button
+        className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-2 rounded-lg transition ${updating ? 'opacity-60 cursor-not-allowed' : ''}`}
+        onClick={handleUpdate}
+        disabled={updating}
+      >
+        {updating ? 'UPDATING...' : 'UPDATE'}
+      </button>
     </div>
   );
 } 
