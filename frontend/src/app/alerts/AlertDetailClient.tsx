@@ -4,6 +4,7 @@ import type { Alert } from './api';
 import WaveSurfer from 'wavesurfer.js';
 import SpectrogramPlugin from 'wavesurfer.js/dist/plugins/spectrogram.esm.js';
 import { ACTIONS, SUSPECTED_REASONS } from '../const';
+import { formatDate } from '../utils';
 
 type AlertUpdate = Pick<Alert, 'suspected_reason' | 'action' | 'comment'>;
 
@@ -135,7 +136,7 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
   }
 
   return (
-    <div className="p-6 relative">
+    <div className="relative">
       {notification && (
         <div className={`fixed right-8 bottom-8 z-50 px-8 py-5 rounded-xl shadow-2xl text-white text-lg font-semibold transition-all
           min-w-[320px] max-w-[90vw] w-auto
@@ -144,12 +145,12 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
           {notification.message}
         </div>
       )}
-      <div className="text-xl font-bold mb-2">Alert ID #{currentAlert.id}</div>
-      <div className="text-gray-500 mb-4">Detected at {new Date(currentAlert.timestamp).toLocaleString()}</div>
+      <div className="text-[25px] text-[#5F6368] mb-3 mt-4">Alert ID #{currentAlert.id}</div>
+      <div className="text-gray-500 mb-3">Detected at {formatDate(currentAlert.timestamp)}</div>
       <div className="flex gap-4 mb-6">
-        <div className="flex-1 border p-2 rounded relative">
-          <div className="font-semibold mb-1">Anomaly Machine Output</div>
-          <audio controls src={audioUrl} className="w-full mb-2" />
+        <div className="flex-1 p-2 relative">
+          <div className="text-[#5F6368] text-[19px] font-semibold mb-3">Anomaly Machine Output</div>
+          <audio controls src={audioUrl} className="w-full h-8 mx-auto mb-2 block" />
           <div ref={anomalyWaveformRef} className="w-full h-20 mb-2" />
           <div ref={anomalySpectrogramRef} className="w-full h-32" />
           {waveformLoading && (
@@ -159,9 +160,9 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
             </div>
           )}
         </div>
-        <div className="flex-1 border p-2 rounded relative">
-          <div className="font-semibold mb-1">Normal Machine Output</div>
-          <audio controls src={audioUrl} className="w-full mb-2" />
+        <div className="flex-1 p-2 relative">
+          <div className="text-[#5F6368] text-[19px] font-semibold mb-3">Normal Machine Output</div>
+          <audio controls src={audioUrl} className="w-full h-8 mx-auto mb-2 block" />
           <div ref={normalWaveformRef} className="w-full h-20 mb-2" />
           <div ref={normalSpectrogramRef} className="w-full h-32" />
           {waveformLoading && (
@@ -172,9 +173,12 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
           )}
         </div>
       </div>
-      <div className="mb-2"><span className="font-semibold">Equipment:</span> {currentAlert.machine.name}</div>
       <div className="mb-4">
-        <label htmlFor="suspected-reason" className="block font-semibold mb-1">Suspected Reason</label>
+        <div className="font-semibold text-[15px] mb-2">Equipment:</div>
+        <div className="text-[15px] mt-1">{currentAlert.machine.name}</div>
+      </div>
+      <div className="mb-4">
+        <label htmlFor="suspected-reason" className="block font-semibold mb-2 text-[15px]">Suspected Reason</label>
         <select
           id="suspected-reason"
           className="block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm"
@@ -188,7 +192,7 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
         </select>
       </div>
       <div className="mb-4">
-        <label htmlFor="action-required" className="block font-semibold mb-1">Action Required</label>
+        <label htmlFor="action-required" className="block font-semibold mb-2 text-[15px]">Action Required</label>
         <select
           id="action-required"
           className="block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm"
@@ -202,7 +206,7 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
         </select>
       </div>
       <div className="mb-4">
-        <label htmlFor="comments" className="block font-semibold mb-1">Comments</label>
+        <label htmlFor="comments" className="block font-semibold mb-2 text-[15px]">Comments</label>
         <textarea
           id="comments"
           className="block w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm min-h-[80px]"

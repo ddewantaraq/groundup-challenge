@@ -96,8 +96,8 @@ export default function AlertsContainer() {
             </div>
           </div>
         </div>
-        <div className="flex h-[600px] gap-6">
-          <div className="w-1/3 h-full overflow-y-auto border-r pr-4">
+        <div className="flex h-[600px] gap-6 border-t-2 border-gray-200">
+          <div className="w-1/3 h-full overflow-y-auto border-r border-gray-200">
             <AlertList
               alerts={alerts}
               loading={loadingAlerts}
@@ -105,7 +105,7 @@ export default function AlertsContainer() {
               onSelectAlert={setSelectedAlertId}
             />
           </div>
-          <div className="w-2/3 h-full overflow-y-auto pl-4">
+          <div className="w-2/3 h-full overflow-y-auto pl-4 mt-4">
             <AlertDetail alertId={selectedAlertId} onAlertUpdated={handleAlertUpdated} audioAssets={audioAssets} />
           </div>
         </div>
