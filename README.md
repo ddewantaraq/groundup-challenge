@@ -22,26 +22,28 @@
 3. **Configure environment variables:**
    - Copy `.env.example` to `.env` (if provided) or create a `.env` file with the following variables:
      ```env
-     API_HOST=http://localhost:3001
-     API_KEY=your_api_key_here
-     ACCESS_KEY_ID=your_aws_access_key_id
-     SECRET_ACCESS_KEY=your_aws_secret_access_key
-     REGION=your_aws_region
-     S3_BUCKET=your_s3_bucket_name
+    POSTGRES_DB=your-postgre-db
+    POSTGRES_USER=your-postgre-user
+    POSTGRES_PASSWORD=your-postgre-password
+    POSTGRES_PORT=your-postgre-port
+    POSTGRES_HOST=your-postgre-host
+    SECRET_SHIFT=your-secret-shift // number
+    API_KEY=your-api-key
+    DB_CA_PATH=your-ca-path // for production
      ```
    - Adjust values as needed for your environment.
 
 4. **Run database migrations and seeders (if using Sequelize):**
    ```bash
-   npx sequelize-cli db:migrate
-   npx sequelize-cli db:seed:all
+   npm run migrate
+   npm run seed
    ```
 
 5. **Start the backend server:**
    ```bash
    npm run dev
    ```
-   - The backend will typically run on `http://localhost:3001` (check your config).
+   - The backend will typically run on `http://localhost:3000` (check your config).
 
 ---
 
@@ -90,8 +92,8 @@
 
 - **Backend:**
   - `npm run dev` — Start backend in development mode
-  - `npx sequelize-cli db:migrate` — Run DB migrations
-  - `npx sequelize-cli db:seed:all` — Seed the database
+  - `npm run migrate` — Run DB migrations
+  - `npm run seed` — Seed the database
 
 - **Frontend:**
   - `npm run dev` — Start frontend in development mode

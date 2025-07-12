@@ -9,7 +9,7 @@
     "seed": "npx sequelize-cli db:seed:all --config config/config.cjs",
     "undo:migrate": "npx sequelize-cli db:migrate:undo:all --config config/config.cjs",
     "undo:seed": "npx sequelize-cli db:seed:undo:all --config config/config.cjs",
-    "start:prod": "NODE_ENV=production pm2 start index.ts --interpreter ./node_modules/.bin/ts-node --watch"
+    "start:prod": "NODE_ENV=production pm2 start index.ts --interpreter ./node_modules/.bin/tsx --watch"
   },
   "author": "",
   "license": "ISC",
@@ -30,6 +30,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/node": "^24.0.13",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3"
   }
 }
