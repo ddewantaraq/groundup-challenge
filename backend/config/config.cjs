@@ -1,5 +1,5 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
-import fs from "fs";
+const fs = require('fs');
 
 if (process.env.NODE_ENV === 'production') {
   console.log('DB_CA_PATH:', process.env.DB_CA_PATH);
