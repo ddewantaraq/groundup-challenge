@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "NODE_ENV=production next build",
-    "start": "PORT=4000 next start",
+    "start": "pm2 start npm --name 'nextjs' -- start",
     "lint": "next lint"
   },
   "dependencies": {
