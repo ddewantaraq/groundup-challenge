@@ -12,6 +12,7 @@ export default function AlertsContainer() {
   const [selectedAlertId, setSelectedAlertId] = useState<string | undefined>(undefined);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
+  const [audioAssets, setAudioAssets] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const loadMachines = async () => {
@@ -22,6 +23,25 @@ export default function AlertsContainer() {
       }
     };
     loadMachines();
+    // Fetch S3 audio assets on mount
+    const fetchAudioAssets = async () => {
+      try {
+        const res = await fetch('/api/s3-audios');
+        if (res.ok) {
+          const data = await res.json();
+          // Convert array of { key, url } to map
+          const map: { [key: string]: string } = {};
+          for (const item of data) {
+            map[item.key] = item.url;
+          }
+          setAudioAssets(map);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to fetch S3 audio assets', err);
+      }
+    };
+    fetchAudioAssets();
   }, []);
 
   useEffect(() => {
@@ -86,7 +106,7 @@ export default function AlertsContainer() {
             />
           </div>
           <div className="w-2/3 h-full overflow-y-auto pl-4">
-            <AlertDetail alertId={selectedAlertId} onAlertUpdated={handleAlertUpdated} />
+            <AlertDetail alertId={selectedAlertId} onAlertUpdated={handleAlertUpdated} audioAssets={audioAssets} />
           </div>
         </div>
       </div>

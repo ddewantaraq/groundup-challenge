@@ -10,17 +10,18 @@ type AlertUpdate = Pick<Alert, 'suspected_reason' | 'action' | 'comment'>;
 interface AlertDetailClientProps {
   alert?: Alert;
   onAlertUpdated?: (alert: Alert) => void;
+  audioAssets?: { [key: string]: string };
 }
 
-export default function AlertDetailClient({ alert, onAlertUpdated }: AlertDetailClientProps) {
+export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }: AlertDetailClientProps) {
   const [suspectedReason, setSuspectedReason] = useState(() => alert?.suspected_reason || '');
   const [action, setAction] = useState(() => alert?.action || '');
   const [comment, setComment] = useState(() => alert?.comment || '');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [updating, setUpdating] = useState(false);
   const [currentAlert, setCurrentAlert] = useState(alert);
+  const [waveformLoading, setWaveformLoading] = useState(true);
 
-  // Sync alert prop to local state if alert changes
   useEffect(() => {
     setSuspectedReason(alert?.suspected_reason || '');
     setAction(alert?.action || '');
@@ -28,62 +29,69 @@ export default function AlertDetailClient({ alert, onAlertUpdated }: AlertDetail
     setCurrentAlert(alert);
   }, [alert]);
 
-  // Use sound_clip for both anomaly and normal audio for now
-  const audioUrl = currentAlert?.sound_clip ? `/audios/${currentAlert.sound_clip}` : '';
+  // Use S3 audio asset if available
+  const audioUrl = (audioAssets && currentAlert?.sound_clip && audioAssets[currentAlert.sound_clip])
+    ? audioAssets[currentAlert.sound_clip]
+    : '';
 
-  // Refs for waveform and spectrogram containers
   const anomalyWaveformRef = useRef<HTMLDivElement>(null);
   const anomalySpectrogramRef = useRef<HTMLDivElement>(null);
   const normalWaveformRef = useRef<HTMLDivElement>(null);
   const normalSpectrogramRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (audioUrl && anomalyWaveformRef.current && anomalySpectrogramRef.current) {
-      const ws = WaveSurfer.create({
-        container: anomalyWaveformRef.current,
-        waveColor: '#2563eb',
-        progressColor: '#1d4ed8',
-        height: 80,
-        barWidth: 2,
-        url: audioUrl,
-        plugins: [
-          SpectrogramPlugin.create({
-            container: anomalySpectrogramRef.current,
-            labels: true,
-            height: 120,
-            fftSamples: 512,
-            frequencyMax: 8000,
-          }),
-        ],
-      });
-      return () => ws.destroy();
+  function createWaveSurfer(waveformRef: React.RefObject<HTMLDivElement | null>, spectrogramRef: React.RefObject<HTMLDivElement | null>, url: string) {
+    try {
+      if (url && waveformRef.current && spectrogramRef.current) {
+        const ws = WaveSurfer.create({
+          container: waveformRef.current,
+          waveColor: '#2563eb',
+          progressColor: '#1d4ed8',
+          height: 80,
+          barWidth: 2,
+          url,
+          plugins: [
+            SpectrogramPlugin.create({
+              container: spectrogramRef.current,
+              labels: true,
+              height: 120,
+              fftSamples: 512,
+              frequencyMax: 8000,
+            }),
+          ],
+        });
+        return ws;
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('WaveSurfer error:', err);
     }
-  }, [audioUrl]);
+    return null;
+  }
 
   useEffect(() => {
-    if (audioUrl && normalWaveformRef.current && normalSpectrogramRef.current) {
-      const ws = WaveSurfer.create({
-        container: normalWaveformRef.current,
-        waveColor: '#2563eb',
-        progressColor: '#1d4ed8',
-        height: 80,
-        barWidth: 2,
-        url: audioUrl,
-        plugins: [
-          SpectrogramPlugin.create({
-            container: normalSpectrogramRef.current,
-            labels: true,
-            height: 120,
-            fftSamples: 512,
-            frequencyMax: 8000,
-          }),
-        ],
-      });
-      return () => ws.destroy();
+    let wsAnomaly: WaveSurfer | null = null;
+    let wsNormal: WaveSurfer | null = null;
+    let readyCount = 0;
+    setWaveformLoading(true);
+    function handleReady() {
+      readyCount += 1;
+      if (readyCount === 2) setWaveformLoading(false);
     }
+    try {
+      wsAnomaly = createWaveSurfer(anomalyWaveformRef, anomalySpectrogramRef, audioUrl);
+      wsNormal = createWaveSurfer(normalWaveformRef, normalSpectrogramRef, audioUrl);
+      if (wsAnomaly) wsAnomaly.on('ready', handleReady);
+      if (wsNormal) wsNormal.on('ready', handleReady);
+    } catch (err) {
+      setNotification({ type: 'error', message: 'Failed to load audio visualization.' });
+      setWaveformLoading(false);
+    }
+    return () => {
+      if (wsAnomaly) wsAnomaly.destroy();
+      if (wsNormal) wsNormal.destroy();
+    };
   }, [audioUrl]);
 
-  // Notification auto-hide
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 3500);
@@ -128,7 +136,6 @@ export default function AlertDetailClient({ alert, onAlertUpdated }: AlertDetail
 
   return (
     <div className="p-6 relative">
-      {/* Notification */}
       {notification && (
         <div className={`fixed right-8 bottom-8 z-50 px-8 py-5 rounded-xl shadow-2xl text-white text-lg font-semibold transition-all
           min-w-[320px] max-w-[90vw] w-auto
@@ -140,17 +147,29 @@ export default function AlertDetailClient({ alert, onAlertUpdated }: AlertDetail
       <div className="text-xl font-bold mb-2">Alert ID #{currentAlert.id}</div>
       <div className="text-gray-500 mb-4">Detected at {new Date(currentAlert.timestamp).toLocaleString()}</div>
       <div className="flex gap-4 mb-6">
-        <div className="flex-1 border p-2 rounded">
+        <div className="flex-1 border p-2 rounded relative">
           <div className="font-semibold mb-1">Anomaly Machine Output</div>
           <audio controls src={audioUrl} className="w-full mb-2" />
           <div ref={anomalyWaveformRef} className="w-full h-20 mb-2" />
           <div ref={anomalySpectrogramRef} className="w-full h-32" />
+          {waveformLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-10">
+              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2" />
+              <div className="text-blue-600 font-semibold text-sm">Loading audio visualization...</div>
+            </div>
+          )}
         </div>
-        <div className="flex-1 border p-2 rounded">
+        <div className="flex-1 border p-2 rounded relative">
           <div className="font-semibold mb-1">Normal Machine Output</div>
           <audio controls src={audioUrl} className="w-full mb-2" />
           <div ref={normalWaveformRef} className="w-full h-20 mb-2" />
           <div ref={normalSpectrogramRef} className="w-full h-32" />
+          {waveformLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-10">
+              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2" />
+              <div className="text-blue-600 font-semibold text-sm">Loading audio visualization...</div>
+            </div>
+          )}
         </div>
       </div>
       <div className="mb-2"><span className="font-semibold">Equipment:</span> {currentAlert.machine.name}</div>

@@ -6,9 +6,10 @@ import type { Alert } from './api';
 interface AlertDetailProps {
   alertId?: string;
   onAlertUpdated?: (alert: Alert) => void;
+  audioAssets?: { [key: string]: string };
 }
 
-export default function AlertDetail({ alertId, onAlertUpdated }: AlertDetailProps) {
+export default function AlertDetail({ alertId, onAlertUpdated, audioAssets }: AlertDetailProps) {
   const [alert, setAlert] = useState<Alert | undefined>(undefined);
   const [loading, setLoading] = useState(false);
 
@@ -34,5 +35,5 @@ export default function AlertDetail({ alertId, onAlertUpdated }: AlertDetailProp
     );
   }
 
-  return <AlertDetailClient alert={alert} onAlertUpdated={onAlertUpdated} />;
+  return <AlertDetailClient alert={alert} onAlertUpdated={onAlertUpdated} audioAssets={audioAssets} />;
 } 
