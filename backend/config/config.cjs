@@ -1,5 +1,9 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 
+if (process.env.NODE_ENV === 'production') {
+  console.log('DB_CA_PATH:', process.env.DB_CA_PATH);
+}
+
 module.exports = {
   development: {
     username: process.env.POSTGRES_USER,
@@ -24,5 +28,11 @@ module.exports = {
     host: process.env.POSTGRES_HOST || 'localhost',
     port: process.env.POSTGRES_PORT || 5432,
     dialect: 'postgres',
+    dialectOptions: process.env.DB_CA_PATH ? {
+      ssl: {
+        require: true,
+        ca: fs.readFileSync(process.env.DB_CA_PATH).toString(),
+      }
+    } : {},
   },
 }; 

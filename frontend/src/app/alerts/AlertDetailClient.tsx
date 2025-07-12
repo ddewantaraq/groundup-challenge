@@ -84,6 +84,8 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
       if (wsAnomaly) wsAnomaly.on('ready', handleReady);
       if (wsNormal) wsNormal.on('ready', handleReady);
     } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('createWaveSurfer error:', err);
       setNotification({ type: 'error', message: 'Failed to load audio visualization.' });
       setWaveformLoading(false);
     }
@@ -121,6 +123,8 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
       setNotification({ type: 'success', message: 'Update successful!' });
       if (onAlertUpdated) onAlertUpdated(updated);
     } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('AlertUpdate error:', e);
       setNotification({ type: 'error', message: 'Failed to update alert.' });
     } finally {
       setUpdating(false);

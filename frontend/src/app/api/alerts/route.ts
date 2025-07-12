@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
     const data = await res.json();
     return NextResponse.json(data?.alerts);
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('GET alerts error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 } 
