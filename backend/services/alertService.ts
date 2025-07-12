@@ -74,10 +74,29 @@ export async function getAlertDetail(obfuscatedId: string) {
 
 export async function updateAlert(obfuscatedId: string, data: UpdateAlertPayload) {
   try {
+    // Validate that at least one meaningful field is provided (excluding updated_by if not provided)
+    const meaningfulFields = ['suspected_reason', 'action', 'comment'];
+    const hasValidFields = meaningfulFields.some(field => {
+      const value = data[field as keyof UpdateAlertPayload];
+      return value !== undefined && value !== null && value !== '';
+    });
+    
+    if (!hasValidFields) {
+      throw new Error('At least one field (suspected_reason, action, or comment) must be provided');
+    }
+
+    if ('updated_by' in data && (!data.updated_by || data.updated_by.trim() === '')) {
+      throw new Error('updated_by cannot be empty if provided');
+    }
+
     const id = decodeId(obfuscatedId, 'alert');
     const alert = await Alert.findByPk(id);
     if (!alert) throw new Error('Alert not found');
-    await alert.update(data);
+    const payload = {
+      ...data,
+      updated_by: data.updated_by || 'anonymous'
+    }
+    await alert.update(payload);
     const logData: AlertCommentLogCreationAttributes = {
       alert_id: alert.id,
       suspected_reason: data.suspected_reason,

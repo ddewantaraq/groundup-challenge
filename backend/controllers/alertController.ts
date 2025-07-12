@@ -30,6 +30,11 @@ export async function updateAlertHandler(req: Request, res: Response) {
     const result = await updateAlert(id, req.body);
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+    const errorMessage = (err as Error).message;
+    if (errorMessage.includes('At least one field') || errorMessage.includes('updated_by cannot be empty')) {
+      res.status(400).json({ error: errorMessage });
+    } else {
+      res.status(500).json({ error: errorMessage });
+    }
   }
 } 

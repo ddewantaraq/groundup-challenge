@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { listAlerts, alertDetail, updateAlertHandler } from '../controllers/alertController';
+import { apiKeyAuth } from '../middleware/apiKeyAuth';
 
 const router = Router();
 
-router.get('/', listAlerts);
-router.get('/:id', alertDetail);
-router.put('/:id', updateAlertHandler);
+router.get('/', apiKeyAuth, listAlerts);
+router.get('/:id', apiKeyAuth, alertDetail);
+router.put('/:id', apiKeyAuth, updateAlertHandler);
 
 export default router; 
