@@ -11,8 +11,8 @@ const sourceSansPro = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "Machine Monitor",
-  description: "Machine monitoring and alert system",
+  title: "Ground up Challenge - Alert system",
+  description: "Alert system and monitoring",
 };
 
 export default function RootLayout({
