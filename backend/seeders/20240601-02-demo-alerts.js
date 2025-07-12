@@ -11,7 +11,7 @@ module.exports = {
 
     await queryInterface.bulkInsert("alerts", [
       {
-        timestamp: 1628676001,
+        timestamp: 1628676001000,
         machine_id: machineMap["CNC Machine"],
         alert_type: "Mild",
         sensor: "1234567890",
@@ -20,7 +20,7 @@ module.exports = {
         updated_at: new Date(),
       },
       {
-        timestamp: 1629102961,
+        timestamp: 1629102961000,
         machine_id: machineMap["CNC Machine"],
         alert_type: "Moderate",
         sensor: "0123456789",
@@ -29,7 +29,7 @@ module.exports = {
         updated_at: new Date(),
       },
       {
-        timestamp: 1629058322,
+        timestamp: 1629058322000,
         machine_id: machineMap["CNC Machine"],
         alert_type: "Severe",
         sensor: "1234567890",
@@ -38,7 +38,7 @@ module.exports = {
         updated_at: new Date(),
       },
       {
-        timestamp: 1629057722,
+        timestamp: 1629057722000,
         machine_id: machineMap["Milling Machine"],
         alert_type: "Mild",
         sensor: "1122334455",
@@ -47,7 +47,7 @@ module.exports = {
         updated_at: new Date(),
       },
       {
-        timestamp: 1629025202,
+        timestamp: 1629025202000,
         machine_id: machineMap["Milling Machine"],
         alert_type: "Moderate",
         sensor: "2345678900",
@@ -56,7 +56,7 @@ module.exports = {
         updated_at: new Date(),
       },
       {
-        timestamp: 1629057361,
+        timestamp: 1629057361000,
         machine_id: machineMap["Milling Machine"],
         alert_type: "Severe",
         sensor: "2345678900",

@@ -32,7 +32,7 @@ export async function getAlerts(page = 1, pageSize = 10, machineId?: string) {
       pageSize,
       alerts: rows.map(alert => ({
         id: encodeId(alert.id, 'alert'),
-        timestamp: alert.timestamp,
+        timestamp: new Date(Number(alert.timestamp)),
         machine: alert.machine ? {
           id: encodeId(alert.machine.id, 'machine'),
           name: alert.machine.name,
@@ -53,7 +53,7 @@ export async function getAlertDetail(obfuscatedId: string) {
     if (!alert) return null;
     return {
       id: encodeId(alert.id, 'alert'),
-      timestamp: alert.timestamp,
+      timestamp: new Date(Number(alert.timestamp)),
       machine: alert.machine ? {
         id: encodeId(alert.machine.id, 'machine'),
         name: alert.machine.name,
