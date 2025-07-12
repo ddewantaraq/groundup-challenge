@@ -15,4 +15,30 @@ export function formatDate(dateString: string): string {
     ':' +
     pad(date.getSeconds())
   );
+}
+
+export function setLocalStorage<T>(key: string, value: T) {
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  }
+}
+
+export function getLocalStorage<T>(key: string): T | null {
+  if (typeof window !== 'undefined') {
+    const item = window.localStorage.getItem(key);
+    if (item) {
+      try {
+        return JSON.parse(item) as T;
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+export function removeLocalStorage(key: string) {
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(key);
+  }
 } 

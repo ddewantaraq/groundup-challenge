@@ -5,6 +5,10 @@ import AlertList from './AlertList';
 import AlertDetail from './AlertDetail';
 import { fetchMachines } from './api';
 import type { Alert } from './api';
+import { setLocalStorage, getLocalStorage } from '../utils';
+
+const SELECTED_MACHINE_KEY = 'selectedMachineId';
+const SELECTED_ALERT_KEY = 'selectedAlertId';
 
 export default function AlertsContainer() {
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -19,7 +23,9 @@ export default function AlertsContainer() {
       const data = await fetchMachines();
       setMachines(data);
       if (data.length > 0) {
-        setSelectedMachine(data[0].id);
+        const storedId = getLocalStorage<string>(SELECTED_MACHINE_KEY);
+        const found = storedId && data.find(m => m.id === storedId);
+        setSelectedMachine(found ? found.id : data[0].id);
       }
     };
     loadMachines();
@@ -42,6 +48,19 @@ export default function AlertsContainer() {
       }
     };
     fetchAudioAssets();
+
+    if (typeof window !== 'undefined') {
+      const storedAlertId = getLocalStorage<string>(SELECTED_ALERT_KEY);
+      if (storedAlertId) {
+        setSelectedAlertId(storedAlertId);
+        window.location.hash = `#${storedAlertId}`;
+      } else {
+        const hash = window.location.hash;
+        if (hash && hash.length > 1) {
+          setSelectedAlertId(hash.substring(1));
+        }
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -58,7 +77,7 @@ export default function AlertsContainer() {
       setLoadingAlerts(false);
     };
     fetchAlerts();
-    setSelectedAlertId(undefined);
+    setLocalStorage(SELECTED_MACHINE_KEY, selectedMachine);
   }, [selectedMachine]);
 
   const handleAlertUpdated = (updatedAlert: Alert) => {
@@ -81,6 +100,10 @@ export default function AlertsContainer() {
               onChange={e => {
                 setSelectedMachine(e.target.value);
                 setSelectedAlertId(undefined);
+                setLocalStorage(SELECTED_ALERT_KEY, '');
+                if (typeof window !== 'undefined') {
+                  window.location.hash = '';
+                }
               }}
             >
               {machines.map(machine => (
@@ -102,7 +125,13 @@ export default function AlertsContainer() {
               alerts={alerts}
               loading={loadingAlerts}
               selectedAlertId={selectedAlertId}
-              onSelectAlert={setSelectedAlertId}
+              onSelectAlert={alertId => {
+                setSelectedAlertId(alertId);
+                setLocalStorage(SELECTED_ALERT_KEY, alertId);
+                if (typeof window !== 'undefined') {
+                  window.location.hash = `#${alertId}`;
+                }
+              }}
             />
           </div>
           <div className="w-2/3 h-full overflow-y-auto pl-4 mt-4">

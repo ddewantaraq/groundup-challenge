@@ -185,9 +185,10 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
         <label htmlFor="suspected-reason" className="block font-semibold mb-2 text-[15px]">Suspected Reason</label>
         <select
           id="suspected-reason"
-          className="block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm"
+          className={`block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm${updating || waveformLoading ? ' opacity-60 cursor-not-allowed' : ''}`}
           value={suspectedReason}
           onChange={e => setSuspectedReason(e.target.value)}
+          disabled={updating || waveformLoading}
         >
           <option value="">Select Suspected Reason</option>
           {SUSPECTED_REASONS.map(reason => (
@@ -199,9 +200,10 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
         <label htmlFor="action-required" className="block font-semibold mb-2 text-[15px]">Action Required</label>
         <select
           id="action-required"
-          className="block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm"
+          className={`block w-64 appearance-none border border-gray-300 rounded-lg px-4 py-2 pr-10 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm${updating || waveformLoading ? ' opacity-60 cursor-not-allowed' : ''}`}
           value={action}
           onChange={e => setAction(e.target.value)}
+          disabled={updating || waveformLoading}
         >
           <option value="">Select Action</option>
           {ACTIONS.map(act => (
@@ -213,15 +215,16 @@ export default function AlertDetailClient({ alert, onAlertUpdated, audioAssets }
         <label htmlFor="comments" className="block font-semibold mb-2 text-[15px]">Comments</label>
         <textarea
           id="comments"
-          className="block w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm min-h-[80px]"
+          className={`block w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition text-base shadow-sm min-h-[80px]${updating || waveformLoading ? ' opacity-60 cursor-not-allowed' : ''}`}
           value={comment}
           onChange={e => setComment(e.target.value)}
+          disabled={updating || waveformLoading}
         />
       </div>
       <button
-        className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-2 rounded-lg transition ${updating ? 'opacity-60 cursor-not-allowed' : ''}`}
+        className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-2 rounded-lg transition ${updating || waveformLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
         onClick={handleUpdate}
-        disabled={updating}
+        disabled={updating || waveformLoading}
       >
         {updating ? 'UPDATING...' : 'UPDATE'}
       </button>
